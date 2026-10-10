@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+# Local development and test artifacts
+.pytest_cache/
+*.bak
+app/main_backup.py
+app/main_before_fixes.py
+cleanup_test_record.py
+/python
