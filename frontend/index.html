@@ -66,8 +66,31 @@ async function loadAttendance(){const params=new URLSearchParams({page:'1',page_
  if(!labels.length){ctx.fillStyle='#8fa8ca';ctx.textAlign='center';ctx.fillText('No attendance data yet',width/2,pad.t+ph/2)}
  const xAt=i=>labels.length===1?pad.l+pw/2:pad.l+i*pw/(labels.length-1);
  const yAt=v=>pad.t+ph-(v/niceMax)*ph;
- const series=[{key:'present',color:'#4f9bff'},{key:'late',color:'#f0ad4e'}];
- series.forEach((ser,si)=>{if(!labels.length)return;ctx.beginPath();labels.forEach((lab,i)=>{const x=xAt(i),y=yAt(by[lab][ser.key]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.strokeStyle=ser.color;ctx.lineWidth=2.5;ctx.stroke();labels.forEach((lab,i)=>{ctx.beginPath();ctx.arc(xAt(i),yAt(by[lab][ser.key]),3.5,0,Math.PI*2);ctx.fillStyle=ser.color;ctx.fill()})});
+ // Draw late arrivals first as a dashed line with square markers, then draw
+ // presence as a solid blue line with circular markers. When both values are
+ // equal, the distinct marker shapes keep both series visible.
+ const series=[
+   {key:'late',color:'#f0ad4e',marker:'square',dash:[5,4]},
+   {key:'present',color:'#4f9bff',marker:'circle',dash:[]}
+ ];
+ series.forEach(ser=>{
+   if(!labels.length)return;
+   ctx.beginPath();
+   labels.forEach((lab,i)=>{const x=xAt(i),y=yAt(by[lab][ser.key]);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});
+   ctx.strokeStyle=ser.color;
+   ctx.lineWidth=ser.key==='late'?2:2.5;
+   ctx.setLineDash(ser.dash);
+   ctx.stroke();
+   ctx.setLineDash([]);
+   labels.forEach((lab,i)=>{
+     const x=xAt(i),y=yAt(by[lab][ser.key]);
+     ctx.beginPath();
+     if(ser.marker==='square')ctx.rect(x-4.5,y-4.5,9,9);
+     else ctx.arc(x,y,3.2,0,Math.PI*2);
+     ctx.fillStyle=ser.color;
+     ctx.fill();
+   });
+ });
  // Keep the plotted series complete, but reduce tick-label density on narrow screens.
  const tickSpacing=pw/Math.max(1,labels.length-1);
  const tickStep=Math.max(1,Math.ceil(58/tickSpacing));
