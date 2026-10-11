@@ -1664,3 +1664,14 @@ def explain_endpoint(
         },
         "verbosity": "executionStats",
     }, endpoint, collection)
+
+# Attendly dashboard route
+from pathlib import Path as _DashboardPath
+from fastapi.responses import FileResponse as _DashboardFileResponse
+
+@app.get("/", include_in_schema=False)
+def serve_attendly_dashboard():
+    dashboard_path = _DashboardPath(__file__).resolve().parent.parent / "frontend" / "index.html"
+    if not dashboard_path.is_file():
+        raise HTTPException(status_code=404, detail="Dashboard file not installed")
+    return _DashboardFileResponse(dashboard_path, media_type="text/html")

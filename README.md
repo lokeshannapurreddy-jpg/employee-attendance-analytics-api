@@ -62,3 +62,7 @@ Open the local Swagger UI at:
 The public deployment uses a hosted service and MongoDB Atlas. Free hosting may introduce a delay when the application starts after being idle.
 
 Successful responses on a small sample dataset do not establish performance at large scale. Query plans and business-rule boundary cases should be validated against the assignment requirements.
+
+## Attendly dashboard
+
+The repository includes a single-file HTML dashboard in `frontend/index.html`. The FastAPI application serves it at `/` and the dashboard uses the same origin for API requests by default. After deployment, open the service's root URL for the dashboard and `/docs` for the interactive API documentation.
