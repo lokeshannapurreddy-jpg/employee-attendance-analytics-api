@@ -4,10 +4,17 @@ A FastAPI backend for employee attendance tracking, attendance regularization, a
 
 ## Live Application
 
-- **Attendly Dashboard (Live):** [Open Attendly](https://employee-attendance-analytics-api.onrender.com/)
-- **Swagger API Documentation:** [Explore the API](https://employee-attendance-analytics-api.onrender.com/docs)
-- **Health Check:** [Check API status](https://employee-attendance-analytics-api.onrender.com/health)
-- **GitHub Repository:** https://github.com/lokeshannapurreddy-jpg/employee-attendance-analytics-api
+### ?? Attendly Dashboard
+
+**[Open Attendly ? Live Employee Attendance Dashboard](https://employee-attendance-analytics-api.onrender.com/)**
+
+Explore the employee directory, attendance overview, workforce analytics, and attendance regularization interface.
+
+### API Resources
+
+- **Swagger UI:** [Explore the API](https://employee-attendance-analytics-api.onrender.com/docs)
+- **Health Check:** [Check API Status](https://employee-attendance-analytics-api.onrender.com/health)
+- **GitHub Repository:** [View Source Code](https://github.com/lokeshannapurreddy-jpg/employee-attendance-analytics-api)
 
 ## Features
 
