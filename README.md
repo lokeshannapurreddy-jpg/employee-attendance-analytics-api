@@ -1,24 +1,64 @@
-# REVIEW.md
+﻿# Employee Attendance & Analytics API
 
-## Defects identified and corrections
+A FastAPI backend for employee attendance tracking, attendance regularization, and workforce analytics, backed by MongoDB.
 
-| # | Where (function / area)                        | What is wrong                                                                                                     | How you'd notice it                                                                                                        | How you fixed it                                                                                                            |
-| - | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 1 | Attendance punch-in and shift-date handling    | A punch-in after midnight can be assigned to the wrong calendar day for an overnight shift.                       | Test an employee working 22:00–06:00 who punches in at 05:50. The attendance date should belong to the previous shift day. | Determine the applicable shift and assign the attendance record to its correct shift date.                                  |
-| 2 | Punch-in concurrency and attendance indexes    | Checking for an existing attendance record alone cannot prevent simultaneous requests from creating duplicates.   | Send concurrent punch-in requests for the same employee and date. Only one should succeed.                                 | Enforce a unique compound index on `(emp_code, date)` and translate duplicate-key conflicts into HTTP 409.                  |
-| 3 | Attendance timestamp normalization             | Millisecond timestamps can retain fractional-second precision when the contract requires whole-second timestamps. | Submit a timestamp with fractional seconds and check the stored and returned values.                                       | Normalize timestamps to whole seconds before storing or calculating derived fields.                                         |
-| 4 | Late-arrival calculation                       | Incorrect threshold or flooring logic can produce incorrect late-minute values near the grace-period boundary.    | Test arrivals at 09:40:00 and 09:40:01 for a 09:30 shift. Expected late minutes are 0 and 10, respectively.                | Apply the defined grace-period comparison and calculate whole late minutes using the required floor behavior.               |
-| 5 | Overtime calculation                           | Incorrect handling of the overtime threshold can misclassify attendance at the exact boundary.                    | Test punch-out at 18:59:59 and 19:00:00 for the configured shift.                                                          | Apply the specified minimum overtime threshold consistently.                                                                |
-| 6 | Work-hour rounding and half-day classification | Ordinary floating-point rounding or classification before rounding can give the wrong result at a threshold.      | Test 1.005 work hours and values immediately below and at 4.5 hours.                                                       | Use the required half-up rounding and classify a half-day using the rounded work-hour value.                                |
-| 7 | Department summary and headcount               | Starting from attendance records alone can exclude employees who have no attendance logs.                         | Add an employee who joined before the reporting-period end but has no attendance records.                                  | Start from eligible employees and use attendance lookups so zero-log employees remain included in headcount.                |
-| 8 | Department trend                               | Missing dates can disappear from the response, making daily trends incomplete.                                    | Request a date range containing days with no attendance records.                                                           | Generate the complete inclusive date range and return a row for every date.                                                 |
-| 9 | Explain endpoint                               | A simplified explain query does not explain the actual query or aggregation used by its corresponding API.        | Compare the explain pipeline with the corresponding analytics endpoint's pipeline and filters.                             | Capture the aggregation built by the actual endpoint and explain that pipeline, preserving the required response structure. |
+## Live Application
 
-## Checks reviewed
+- **Swagger UI:** https://employee-attendance-analytics-api.onrender.com/docs
+- **Health endpoint:** https://employee-attendance-analytics-api.onrender.com/health
+- **GitHub repository:** https://github.com/lokeshannapurreddy-jpg/employee-attendance-analytics-api
 
-* Concurrent punch-in and punch-out requests were tested to check duplicate-write protection.
-* Overnight attendance, validation errors, timestamp normalization, rounding, and half-day boundaries were tested.
-* Department trend date coverage and the handling of employees without logs were checked.
-* Explain endpoints were checked for HTTP 200 responses, expected response fields, and indexed winning plans.
+The base URL may return {"detail":"Not Found"} because the API does not define a homepage route. Use /docs to explore the API.
 
-Retain only defects confirmed against the original starter implementation. The checks listed here describe verification performed; a passing test by itself does not establish that the original starter contained a defect.
+## Features
+
+- Employee listing and creation
+- Attendance punch-in and punch-out
+- Attendance record listing and regularization with audit history
+- Monthly employee attendance analytics
+- Department attendance summaries
+- Late-arrival leaderboard with competition ranking
+- Daily department trends and seven-day moving averages
+- MongoDB query explainability for supported endpoints
+
+## Technology Stack
+
+- Python
+- FastAPI
+- MongoDB Atlas
+- PyMongo
+- Pydantic
+
+## Configuration
+
+Set these environment variables:
+
+- MONGO_URI: MongoDB connection URI
+- MONGO_DB: Database name, such as attendance_db
+
+Keep database credentials in environment variables or a local .env file. Never commit secrets to GitHub.
+
+## Run Locally
+
+From the project directory, install the dependencies:
+
+    python -m pip install -r requirements.txt
+
+Configure MONGO_URI and MONGO_DB, then run:
+
+    uvicorn app.main:app --reload --port 8000
+
+Open the local Swagger UI at:
+
+    http://127.0.0.1:8000/docs
+
+## Project Documentation
+
+- REVIEW.md — findings, observed verification results, and remaining tests.
+- DECISIONS.md — implementation decisions and their rationale.
+
+## Notes
+
+The public deployment uses a hosted service and MongoDB Atlas. Free hosting may introduce a delay when the application starts after being idle.
+
+Successful responses on a small sample dataset do not establish performance at large scale. Query plans and business-rule boundary cases should be validated against the assignment requirements.
