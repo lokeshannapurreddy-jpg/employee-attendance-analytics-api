@@ -56,7 +56,7 @@ async function loadAttendance(){const params=new URLSearchParams({page:'1',page_
  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
  const by={};
- (rows||[]).forEach(a=>{const date=a.date||'Unknown';by[date]??={present:0,late:0};if(['PRESENT','WFH','ON_DUTY'].includes(String(a.status||'').toUpperCase()))by[date].present++;if(Number(a.late_minutes||0)>0)by[date].late++});
+ (rows||[]).filter(a=>a.date&&a.date<=dateToday).forEach(a=>{const date=a.date;by[date]??={present:0,late:0};if(['PRESENT','WFH','ON_DUTY'].includes(String(a.status||'').toUpperCase()))by[date].present++;if(Number(a.late_minutes||0)>0)by[date].late++});
  const labels=Object.keys(by).sort().slice(-7);
  const pad={l:38,r:18,t:20,b:45},pw=width-pad.l-pad.r,ph=height-pad.t-pad.b;
  const maxVal=Math.max(1,...labels.map(x=>Math.max(by[x].present,by[x].late)));

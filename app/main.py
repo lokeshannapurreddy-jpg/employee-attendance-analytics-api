@@ -121,6 +121,21 @@ def shift_bounds(day: date, emp: dict) -> tuple[datetime, datetime]:
     end = datetime.combine(end_day, end_t, IST)
     return start, end
 
+def attendance_date_for_punch_in(instant: datetime, emp: dict) -> str:
+    """Return the R1 attendance date for a punch-in instant (IST, including overnight shifts)."""
+    if instant.tzinfo is None:
+        instant = instant.replace(tzinfo=UTC)
+    local_instant = instant.astimezone(IST)
+    attendance_date = local_instant.date()
+    shift_start = parse_shift_time(emp["shift_start"])
+    shift_end = parse_shift_time(emp["shift_end"])
+    if (
+        shift_end <= shift_start
+        and local_instant.timetz().replace(tzinfo=None) < shift_end
+    ):
+        attendance_date -= timedelta(days=1)
+    return attendance_date.isoformat()
+
 
 def compute_derived(
     emp: dict,
@@ -438,21 +453,7 @@ def punch_in(body: PunchInIn):
         raise HTTPException(422, "status must be PRESENT, WFH, or ON_DUTY")
     instant = from_epoch_ms(body.punched_at) if body.punched_at is not None else now_utc()
     instant_db = to_db_datetime(instant)
-    local_instant = instant.astimezone(IST)
-    attendance_date = local_instant.date()
-    shift_start = parse_shift_time(emp["shift_start"])
-    shift_end = parse_shift_time(emp["shift_end"])
-
-    # For an overnight shift, early-morning punches belong to
-    # the previous day's shift when before the scheduled shift end.
-    if (
-        shift_end <= shift_start
-        and local_instant.timetz().replace(tzinfo=None) < shift_end
-    ):
-        from datetime import timedelta as _timedelta
-        attendance_date -= _timedelta(days=1)
-
-    attendance_day = attendance_date.isoformat()
+    attendance_day = attendance_date_for_punch_in(instant, emp)
     doc = {
         "emp_code": body.emp_code,
         "date": attendance_day,
@@ -582,9 +583,9 @@ def regularize_attendance(emp_code: str, date: str, body: RegularizeIn):
     else:
         if punch_in is None:
             raise HTTPException(422, "presence statuses require punch_in")
-        local_day = punch_in.replace(tzinfo=UTC).astimezone(IST).date().isoformat()
-        if local_day != attendance_day:
-            raise HTTPException(422, "punch_in must fall on attendance date")
+        calculated_day = attendance_date_for_punch_in(punch_in, emp)
+        if calculated_day != attendance_day:
+            raise HTTPException(422, "punch_in must belong to the record's attendance date")
 
     computed = compute_derived(emp, attendance_day, status, punch_in, punch_out)
     changes = {}
