@@ -854,7 +854,7 @@ def department_summary(
                                                 },
                                             ]
                                         },
-                                        "$work_hours",
+                                        {"$toDecimal": "$work_hours"},
                                         0,
                                     ]
                                 }
@@ -1033,15 +1033,29 @@ def department_summary(
                     "$cond": [
                         {"$gt": ["$hours_n", 0]},
                         {
-                            "$round": [
-                                {
-                                    "$divide": [
-                                        "$hours_sum",
-                                        "$hours_n",
-                                    ]
-                                },
-                                2,
-                            ]
+                            "$toDouble": {
+                                "$divide": [
+                                    {
+                                        "$floor": {
+                                            "$add": [
+                                                {
+                                                    "$multiply": [
+                                                        {
+                                                            "$divide": [
+                                                                "$hours_sum",
+                                                                {"$toDecimal": "$hours_n"},
+                                                            ]
+                                                        },
+                                                        {"$toDecimal": "100"},
+                                                    ]
+                                                },
+                                                {"$toDecimal": "0.5"},
+                                            ]
+                                        }
+                                    },
+                                    {"$toDecimal": "100"},
+                                ]
+                            }
                         },
                         None,
                     ]
