@@ -4,9 +4,9 @@ A FastAPI backend for employee attendance tracking, attendance regularization, a
 
 ## Live Application
 
-### ?? Attendly Dashboard
+### Attendly Dashboard
 
-**[Open Attendly ? Live Employee Attendance Dashboard](https://employee-attendance-analytics-api.onrender.com/)**
+**[Open Attendly - Live Employee Attendance Dashboard](https://employee-attendance-analytics-api.onrender.com/)**
 
 Explore the employee directory, attendance overview, workforce analytics, and attendance regularization interface.
 
